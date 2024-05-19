@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from scipy.optimize import minimize
 
-# Aircraft parameters from Table 1
 cfcr = 0.92958
 cf1 = 0.70057
 cf2 = 1068.1
@@ -15,17 +14,14 @@ cd0 = 0.025452
 k = 0.035815
 S = 124.65
 
-# Wind speed polynomial coefficients from Table 2
 wind_coeffs_x = [-21.151, 10.0039, 1.1081, -0.5239, -0.1297, -0.006, 0.0073, 0.0066, -0.0001]
 wind_coeffs_y = [-65.3035, 17.6148, 1.0855, -0.7001, -0.5508, -0.003, 0.0241, 0.0064, -0.000227]
 
 def wind_speed_x(lam, phi):
-    # Evaluate the polynomial for a single value of lam and phi
     poly = np.poly1d(wind_coeffs_x[::-1])
     return poly([lam, phi])[0]
 
 def wind_speed_y(lam, phi):
-    # Evaluate the polynomial for a single value of lam and phi
     poly = np.poly1d(wind_coeffs_y[::-1])
     return poly([lam, phi])[0]
 
@@ -50,7 +46,6 @@ def aircraft_dynamics(t, state, u):
     dpsidt = (CL * S * rho * v * np.sin(mu)) / (2 * m * np.cos(gamma))
     dmdt = -f
     
-    # Debug statements
     print(f"dxdt: {dxdt}, dydt: {dydt}, dhdt: {dhdt}, dvdt: {dvdt}, dpsidt: {dpsidt}, dmdt: {dmdt}")
     print(f"Types: dxdt {type(dxdt)}, dydt {type(dydt)}, dhdt {type(dhdt)}, dvdt {type(dvdt)}, dpsidt {type(dpsidt)}, dmdt {type(dmdt)}")
     print(f"Shapes: dxdt {np.shape(dxdt)}, dydt {np.shape(dydt)}, dhdt {np.shape(dhdt)}, dvdt {np.shape(dvdt)}, dpsidt {np.shape(dpsidt)}, dmdt {np.shape(dmdt)}")
@@ -74,7 +69,7 @@ def cost_function(u_flat, initial_state, time_span, posf):
 
 def optimize_trajectory(initial_state, time_span, posf):
     N = len(time_span) - 1
-    u_guess = np.zeros((N, 3))  # Initial guess for control inputs
+    u_guess = np.zeros((N, 3))  
     bounds = [(-np.pi/2, np.pi/2), (-np.pi/4, np.pi/4), (0, 1)] * N
     result = minimize(cost_function, u_guess.flatten(), args=(initial_state, time_span, posf), bounds=bounds, method='SLSQP')
     return result.x.reshape((N, 3))
@@ -97,20 +92,16 @@ flight_plans = [
     {"initial": [10, 40, 7000, 210, 0, 61000], "final": [10, 53, 7000]},
 ]
 
-time_span = np.linspace(0, 3600, 361)  # Simulate for 1 hour with 10 second intervals
+time_span = np.linspace(0, 3600, 361) 
 
-# Generate plots for each flight plan
 for i, plan in enumerate(flight_plans):
     initial_state = plan["initial"]
     posf = plan["final"]
     
-    # Optimize trajectory
     u_optimal = optimize_trajectory(initial_state, time_span, posf)
     
-    # Simulate flight with optimized control inputs
     states = simulate_flight(initial_state, u_optimal, time_span)
     
-    # Plot results
     plt.figure(figsize=(12, 8))
     
     plt.subplot(3, 1, 1)
